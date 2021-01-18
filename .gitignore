@@ -71,3 +71,6 @@ CreeDictionary/CreeDictionary/static/CreeDictionary/js/index.js
 CreeDictionary/CreeDictionary/static/CreeDictionary/css/styles.css
 *.css.map
 *.js.map
+
+# Pipenv keeps creating this file for some dumb reason:
+CreeDictionary/pyproject.toml

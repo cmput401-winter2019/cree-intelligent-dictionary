@@ -10,65 +10,38 @@ env:
 
 
 jobs:
-  # NOTE: Do all jobs SEQUENTIALLY to avoid merges
-
-  reformat-altlabel:
+  reformat:
     if: "! contains(toJSON(github.event.commits.*.message), '[skip reformat]')"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+
     steps:
     - uses: actions/checkout@v2
-      with:
-        ref: ${{ github.head_ref }}
+
     - name: Set up Python ${{ env.ACTIONS_PYTHON_VERSION }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ env.ACTIONS_PYTHON_VERSION }}
-    - name: Reformat
-      run: ./libexec/altlabel_utils.py format
-    - name: Git Auto Commit
-      uses: stefanzweifel/git-auto-commit-action@v4.3.0
-      with:
-        commit_message: "🤖🧹 reformat crk.altlabel [skip ci]"
-
-  reformat-python:
-    runs-on: ubuntu-latest
-    # Ensure this is run **sequentially**
-    needs: reformat-altlabel
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        ref: ${{ github.head_ref }}
-    - name: Set up Python ${{ env.ACTIONS_PYTHON_VERSION }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ env.ACTIONS_PYTHON_VERSION }}
-    - name: Install dependencies
-      run: "pip install black"
-    - name: Reformat Python
-      run: |
-        black .
-    - name: Git Auto Commit
-      uses: stefanzweifel/git-auto-commit-action@v4.3.0
-      with:
-        commit_message: "🤖🧹 reformat Python files [skip ci]"
-
-  reformat-javascript:
-    runs-on: ubuntu-latest
-    # Ensure this is run **sequentially**
-    needs: reformat-python
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        ref: ${{ github.head_ref }}
+    - name: Install Python Dependencies
+      run: pip install black
     - name: Setup Node.js environment
       uses: actions/setup-node@v1
       with:
         node-version: '12'
-    - name: Install dependencies
+    - name: Install npm dependencies
       run: npm ci
+    - name: Reformat data files
+      run: ./libexec/altlabel_utils.py format
+    - name: Reformat Python files
+      run: black .
     - name: Reformat JavaScript
       run: npx eslint --fix src/ cypress/
-    - name: Git Auto Commit
-      uses: stefanzweifel/git-auto-commit-action@v4.3.0
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v3
       with:
-        commit_message: "🤖🧹 reformat JavaScript files [skip ci]"
+        title: "style: reformat files"
+        branch-suffix: short-commit-hash
+        commit-message: |
+          style: reformat files
+
+          [skip deploy]
+        delete-branch: true
