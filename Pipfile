@@ -36,6 +36,7 @@ dawg = "~=0.8"
 gunicorn = "*"
 environs = {extras = ["django"], version = "*"}
 hfst-optimized-lookup = "*"
+mypy = ">=0.800"
 
 [scripts]
 # look stuff up
