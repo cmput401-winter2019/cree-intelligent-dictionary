@@ -4,19 +4,7 @@ import logging
 import unicodedata
 from functools import cmp_to_key, partial
 from itertools import chain
-from typing import (
-    Any,
-    Callable,
-    Iterable,
-    List,
-    NamedTuple,
-    NewType,
-    Optional,
-    Set,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import Any, Callable, Iterable, NamedTuple, NewType, Optional, Union, cast
 
 import attr
 from API.affix_search import AffixSearcher
@@ -99,7 +87,7 @@ class CompoundLinguisticTag(LinguisticTag):
         return LABELS.english.get_longest(self._fst_tags)
 
 
-def linguistic_tag_from_fst_tags(tags: Tuple[FSTTag, ...]) -> LinguisticTag:
+def linguistic_tag_from_fst_tags(tags: tuple[FSTTag, ...]) -> LinguisticTag:
     """
     Returns the appropriate LinguisticTag, no matter how many tags you chuck at it!
     """
@@ -133,23 +121,23 @@ class SearchResult:
     # triple dots in type annotation means they can be empty
 
     # user friendly linguistic breakdowns
-    linguistic_breakdown_head: Tuple[str, ...]
-    linguistic_breakdown_tail: Tuple[str, ...]
+    linguistic_breakdown_head: tuple[str, ...]
+    linguistic_breakdown_tail: tuple[str, ...]
 
     # The suffix tags, straight from the FST
-    raw_suffix_tags: Tuple[FSTTag, ...]
+    raw_suffix_tags: tuple[FSTTag, ...]
 
     # Sequence of all preverb tags, in order
     # Optional: we might not have some preverbs in our database
-    preverbs: Tuple[Preverb, ...]
+    preverbs: tuple[Preverb, ...]
 
     # TODO: there are things to be figured out for this :/
     # Sequence of all reduplication tags present, in order
-    reduplication_tags: Tuple[str, ...]
+    reduplication_tags: tuple[str, ...]
     # Sequence of all initial change tags
-    initial_change_tags: Tuple[str, ...]
+    initial_change_tags: tuple[str, ...]
 
-    definitions: Tuple[Definition, ...]
+    definitions: tuple[Definition, ...]
 
     def serialize(self) -> SerializedSearchResult:
         """
@@ -177,7 +165,7 @@ class SearchResult:
         return cast(SerializedSearchResult, result)
 
     @property
-    def relevant_tags(self) -> Tuple[LinguisticTag, ...]:
+    def relevant_tags(self) -> tuple[LinguisticTag, ...]:
         """
         Tags and features to display in the linguistic breakdown pop-up.
         This omits preverbs and other features displayed elsewhere
@@ -243,8 +231,8 @@ class CreeAndEnglish(NamedTuple):
     """
 
     # MatchedCree are inflections
-    cree_results: Set[CreeResult]
-    english_results: Set[EnglishResult]
+    cree_results: set[CreeResult]
+    english_results: set[EnglishResult]
 
 
 class _BaseWordformSearch:
@@ -274,7 +262,7 @@ class _BaseWordformSearch:
         raise NotImplementedError
 
     def prepare_cree_results(
-        self, cree_results: Set[CreeResult]
+        self, cree_results: set[CreeResult]
     ) -> Iterable[SearchResult]:
         # Create the search results
         for cree_result in cree_results:
@@ -311,7 +299,7 @@ class _BaseWordformSearch:
             )
 
     def prepare_english_results(
-        self, english_results: Set[EnglishResult]
+        self, english_results: set[EnglishResult]
     ) -> Iterable[SearchResult]:
         for result in english_results:
             (
@@ -374,8 +362,8 @@ def filter_cw_wordforms(q: Iterable[Wordform]) -> Iterable[Wordform]:
 
 
 def get_preverbs_from_head_breakdown(
-    head_breakdown: List[FSTTag],
-) -> Tuple[Preverb, ...]:
+    head_breakdown: list[FSTTag],
+) -> tuple[Preverb, ...]:
     results = []
 
     for tag in head_breakdown:
@@ -408,7 +396,7 @@ def get_preverbs_from_head_breakdown(
     return tuple(results)
 
 
-def fetch_preverbs(user_query: str) -> Set[Wordform]:
+def fetch_preverbs(user_query: str) -> set[Wordform]:
     """
     Search for preverbs in the database by matching the circumflex-stripped forms. MD only contents are filtered out.
     trailing dash relaxation is used
@@ -458,8 +446,8 @@ def fetch_cree_and_english_results(
     # 2. spell relax in descriptive fst
     # 2. definition containment of the query word
 
-    cree_results: Set[CreeResult] = set()
-    english_results: Set[EnglishResult] = set()
+    cree_results: set[CreeResult] = set()
+    english_results: set[EnglishResult] = set()
 
     # there will be too many matches for some shorter queries
     if affix_search and not query_would_return_too_many_results(user_query):
@@ -473,8 +461,8 @@ def fetch_cree_and_english_results(
 
 def _fetch_results(
     user_query: InternalForm,
-    cree_results: Set[CreeResult],
-    english_results: Set[EnglishResult],
+    cree_results: set[CreeResult],
+    english_results: set[EnglishResult],
 ):
     """
     The rest of this method is code Eddie has NOT refactored, so I don't really
@@ -483,7 +471,7 @@ def _fetch_results(
     # Use the spelling relaxation to try to decipher the query
     #   e.g., "atchakosuk" becomes "acâhkos+N+A+Pl" --
     #         thus, we can match "acâhkos" in the dictionary!
-    fst_analyses: Set[ConcatAnalysis] = set(
+    fst_analyses: set[ConcatAnalysis] = set(
         a.concatenate() for a in hfstol.analyze(user_query)
     )
 
@@ -664,7 +652,7 @@ def do_affix_search(query: InternalForm, affixes: AffixSearcher) -> Iterable[Wor
     return Wordform.objects.filter(id__in=matched_ids)
 
 
-def replace_user_friendly_tags(fst_tags: List[FSTTag]) -> List[Label]:
+def replace_user_friendly_tags(fst_tags: list[FSTTag]) -> list[Label]:
     """ replace fst-tags to cute ones"""
     return LABELS.english.get_full_relabelling(fst_tags)
 
